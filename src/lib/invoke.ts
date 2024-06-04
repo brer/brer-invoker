@@ -189,17 +189,23 @@ function serializeImage(image: InvocationImage): string {
 }
 
 function hasTimedOut(invocation: Invocation): boolean {
-  if (
-    invocation.timeout &&
-    isOlderThan(invocation.createdAt, invocation.timeout)
-  ) {
-    // Global Invocation timeout (whole time since its creation)
-    return true
-  } else if (invocation.status === 'initializing') {
-    // 10 minutes of initialization timeout (Pod stuck in Initializing status)
-    return isOlderThan(invocation.updatedAt, 600)
-  } else {
-    return false
+  switch (invocation.status) {
+    case 'initializing':
+      // 10 minutes of delay before considering a runtime failure
+      return isOlderThan(
+        invocation.phases[invocation.phases.length - 1].date,
+        600,
+      )
+    case 'running':
+      // Timeout since running phase
+      return invocation.timeout
+        ? isOlderThan(
+            invocation.phases[invocation.phases.length - 1].date,
+            invocation.timeout,
+          )
+        : false
+    default:
+      return false
   }
 }
 

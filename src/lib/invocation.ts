@@ -67,7 +67,7 @@ export interface Invocation {
    */
   retries?: number
   /**
-   * Global Invocation timeout (seconds).
+   * Timeout since reaching the running status.
    */
   timeout?: number
   /**
